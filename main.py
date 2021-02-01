@@ -12,35 +12,26 @@ BLACK = (0,0,0) # polygon color
 YELLOW = (255,255,0) # line color
 GREEN = (0,255,0) # goal color
 RED = (255,0,0) # start color
-ORANGE = (255,165,0) # expansion color
 
-"""
-draw the screen buffer of polygons and stuff (not the screen bg though)
-0 = nothing
-1 = polygon
-2 = line
-3 = goal
-4 = start
-5 = expanded path
-"""
-# use with screenBuffer[columns-1][rows-1]
-screenBuffer = [[0 for i in range(rows)] for j in range(columns)]  
-def drawBuffer():
-    for i in range(len(screenBuffer)):
-        for j in range(len(screenBuffer[i])):
-            if screenBuffer[i][j] == 1:
-                pygame.draw.circle(screen,BLACK,(i,rows-j),4)
+start = (20,20)
+goal = (630,470)
 
-# add a line :)
-def addLine(x1,y1,x2,y2):
-    slope = (y2 - y1) / (x2 - x1)
-    # draw for every x, with y calculated using slope
-    for
+polygon1 = [(40,40),(170,100),(170,200),(40,200)]
+polygon2 = [(70,220),(140,230),(100,400)]
+polygon3 = [(300,300),(400,240),(400,450),(200,400)]
+polygon4 = [(600,20),(500,30),(550,150)]
+polygon5 = [(500,420),(500,400),(610,400),(610,460)]
+polygon6 = [(450,420),(470,270),(450,270)]
+polygon7 = [(300,10),(450,10),(450,200),(300,200)]
+polygon8 = [(610,300),(540,300),(520,340),(540,370),(620,340)]
+polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
 
-
-# we run this bad boi once
-def doAStar():
-    print(":)")
+# draw static field stuff using SDL & OpenGL's weird coordinate system
+def drawField():
+    for polygon in polygons:
+        pygame.draw.polygon(screen,BLACK,polygon,3)
+    pygame.draw.circle(screen,RED,start,4)
+    pygame.draw.circle(screen,GREEN,goal,4)
 
 running = True
 while running:
@@ -51,7 +42,7 @@ while running:
 
     # draw background, then shapes and lines, and update screen
     screen.fill(WHITE)
-    drawBuffer()
+    drawField()
     pygame.display.update()
 
 pygame.quit()
