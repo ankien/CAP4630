@@ -14,7 +14,7 @@ ORANGE = (255,165,0) # line color
 GREEN = (0,255,0) # goal color
 RED = (255,0,0) # start color
 
-start = (20,20)
+start = (20,40)
 goal = (630,470)
 
 polygon1 = [(40,40),(170,100),(170,200),(40,200)]
@@ -24,7 +24,7 @@ polygon4 = [(600,20),(500,30),(550,150)]
 polygon5 = [(500,420),(500,400),(550,400),(550,460)]
 polygon6 = [(450,420),(470,270),(450,270)]
 polygon7 = [(300,10),(450,10),(450,200),(300,200)]
-polygon8 = [(610,300),(540,300),(520,340),(620,350)]
+polygon8 = [(610,300),(540,300),(500,340),(620,350)]
 polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
 nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
 nodes.append(goal)
