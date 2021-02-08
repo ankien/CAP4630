@@ -5,7 +5,7 @@ pygame.init()
 
 pygame.display.set_caption("Andrew's A* Search Visualization")
 
-columns, rows = (640,480)
+columns, rows = (1151,478)
 screen = pygame.display.set_mode((columns,rows))
 
 WHITE = (255,255,255) # screen color
@@ -14,17 +14,17 @@ ORANGE = (255,165,0) # line color
 GREEN = (0,255,0) # goal color
 RED = (255,0,0) # start color
 
-start = (20,40)
-goal = (630,470)
+start = (195,408)
+goal = (961,48)
 
-polygon1 = [(40,40),(170,100),(170,200),(40,200)]
-polygon2 = [(70,220),(140,230),(100,400)]
-polygon3 = [(300,300),(400,240),(400,450),(200,400)]
-polygon4 = [(600,20),(500,30),(550,150)]
-polygon5 = [(500,420),(500,400),(550,400),(550,460)]
-polygon6 = [(450,420),(470,270),(450,270)]
-polygon7 = [(300,10),(450,10),(450,200),(300,200)]
-polygon8 = [(610,300),(540,300),(500,340),(620,350)]
+polygon1 = [(227,458),(227,347),(580,347),(580,458)]
+polygon2 = [(209,260),(330,290),(399,145),(318,31),(190,148)]
+polygon3 = [(406,299),(501,301),(450,123)]
+polygon4 = [(508,184),(508,45),(595,29),(659,97)]
+polygon5 = [(597,245),(632,403),(705,332)]
+polygon6 = [(678,275),(678,46),(825,46),(825,275)]
+polygon7 = [(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)]
+polygon8 = [(845,74),(921,300),(941,85),(900,43)]
 polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
 nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
 nodes.append(goal)
@@ -32,8 +32,8 @@ nodes.append(goal)
 def getLines():
     linesList = []
     for polygon in polygons:
-        for index in range(len(polygon) - 1):
-            linesList.append((polygon[index],polygon[index+1]))
+        for index in range(len(polygon)):
+            linesList.append((polygon[index],polygon[(index+1) % len(polygon)]))
     return linesList
 lines = getLines()
 
@@ -44,14 +44,30 @@ def drawField():
     pygame.draw.circle(screen,RED,start,4)
     pygame.draw.circle(screen,GREEN,goal,4)
 
+# aka calculate h(n) for dist to goal, and g(n) for dist from currNode
+# best path has the lowest h(n) + g(n)
 def calculateDist(node1,node2):
-    return math.sqrt((node2[0]-node1[0])**2 + (node2[1]-node1[1])**2)
+    return math.sqrt((node2[0]-node1[0])**2 + ((rows-node2[1])-(rows-node1[1]))**2)
 
 def ccw(A,B,C):
     return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
 
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
+def notLine(currNode,node):
+    for line in lines:
+        if (line == (currNode,node)) or (line == (node,currNode)):
+            return False
+    return True
+
+def getOffset(p1,p2):
+    if p1 > p2:
+        return -1
+    elif p1 == p2:
+        return 0
+    else:
+        return 1
 
 def findNeighbors(currNode):
     neighbors = []
@@ -62,7 +78,11 @@ def findNeighbors(currNode):
     for node in nodes:
         neighbors.append(node)
         for line in lines:
-            if intersect((currNode[0],currNode[1]),(node[0],node[1]),line[0],line[1]):
+            offsetX1 = getOffset(currNode[0],node[0])
+            offsetY1 = getOffset(rows-currNode[1],rows-node[1])
+            offsetX2 = getOffset(node[0],currNode[0])
+            offsetY2 = getOffset(rows-node[1],rows-currNode[1])
+            if intersect((currNode[0]+offsetX1,currNode[1]+offsetY1),(node[0]+offsetX2,node[1]+offsetY2),line[0],line[1]) and notLine(currNode,node):
                 neighbors.pop()
                 break
     return neighbors
@@ -70,19 +90,27 @@ def findNeighbors(currNode):
 returnedPath = []
 def aStar():
     currNode = start
+    fnList = []
     while currNode != goal:
         for neighbor in findNeighbors(currNode):
             # go to goal if it's in clear sight
             if neighbor == goal:
                 returnedPath.append(goal)
                 currNode = goal
+                fnList.clear()
                 break
-            # else pick the node closest to goal
+            # else calculate the f(n)
             else:
-                if calculateDist(neighbor,goal) < calculateDist(currNode,goal):
-                    currNode = neighbor
+                fnList.append((calculateDist(neighbor,goal)+calculateDist(currNode,neighbor),neighbor))
 
+        if len(fnList) != 0:
+            lowestFn = fnList[0][0]
+            for fn in fnList:
+                if fn[0] <= lowestFn:
+                    currNode = fn[1]
+        # append lowest fn
         returnedPath.append(currNode)
+        fnList.clear()
 
 aStar()
 
