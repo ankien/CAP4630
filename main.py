@@ -17,7 +17,7 @@ start = (195,408); goal = (961,48)
 
 polygon1 = [(227,458),(227,347),(580,347),(580,458)]
 polygon2 = [(209,260),(330,280),(399,145),(318,31),(190,148)]
-polygon3 = [(406,280),(501,280),(450,123)]
+polygon3 = [(408,300),(500,300),(450,123)]
 polygon4 = [(508,184),(508,45),(595,29),(659,97)]
 polygon5 = [(597,245),(632,403),(705,332)]
 polygon6 = [(678,275),(678,46),(825,46),(825,275)]
@@ -98,7 +98,7 @@ def aStar(currNode,currFn,currPath):
             newPath.append(neighbor)
             finalPath = newPath
             return
-        newFn = currFn + calculateDist(currNode,neighbor) + calculateDist(neighbor,goal)
+        newFn = currFn + calculateDist(currNode,neighbor) + (calculateDist(neighbor,goal)*1.5)
         if neighbor != currNode:
             neighborList.append([neighbor,newFn,newPath])
 
