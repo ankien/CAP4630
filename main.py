@@ -2,7 +2,6 @@ import pygame
 import math
 
 pygame.init()
-
 pygame.display.set_caption("Andrew's A* Search Visualization")
 
 columns, rows = (1151,478)
@@ -14,8 +13,7 @@ ORANGE = (255,165,0) # line color
 GREEN = (0,255,0) # goal color
 RED = (255,0,0) # start color
 
-start = (195,408)
-goal = (961,48)
+start = (195,408); goal = (961,48)
 
 polygon1 = [(227,458),(227,347),(580,347),(580,458)]
 polygon2 = [(209,260),(330,290),(399,145),(318,31),(190,148)]
@@ -61,6 +59,7 @@ def notLine(currNode,node):
             return False
     return True
 
+# because lines to nodes may overlap with node locations
 def getOffset(p1,p2):
     if p1 > p2:
         return -1
@@ -71,10 +70,8 @@ def getOffset(p1,p2):
 
 def findNeighbors(currNode):
     neighbors = []
-    """
-    for every node, shoot a line to it;
-    if it intersects with a polygon line, disregard it
-    """
+    # for every node, shoot a line to it;
+    # if it intersects with a polygon line, disregard it
     for node in nodes:
         neighbors.append(node)
         for line in lines:
@@ -87,37 +84,39 @@ def findNeighbors(currNode):
                 break
     return neighbors
 
-returnedPath = []
-def aStar():
-    currNode = start
-    fnList = []
-    while currNode != goal:
-        for neighbor in findNeighbors(currNode):
-            # go to goal if it's in clear sight
-            if neighbor == goal:
-                returnedPath.append(goal)
-                currNode = goal
-                fnList.clear()
-                break
-            # else calculate the f(n)
-            else:
-                fnList.append((calculateDist(neighbor,goal)+calculateDist(currNode,neighbor),neighbor))
+# stores nodes we've already "expanded"
+seenList = []
+def aStar(currNode,currFn,currPath):
+    global finalPath
+    newPath = currPath + [currNode]
+    neighbors = findNeighbors(currNode)
+    neighborList = []
+    shortestUnseenNeighbor = []
+    smallestFn = 0
+    for neighbor in neighbors:
+        if neighbor == goal:
+            newPath.append(neighbor)
+            finalPath = newPath
+            return
+        newFn = currFn + calculateDist(currNode,neighbor) + calculateDist(neighbor,goal)
+        if neighbor != currNode:
+            neighborList.append([neighbor,newFn,newPath])
 
-        if len(fnList) != 0:
-            lowestFn = fnList[0][0]
-            for fn in fnList:
-                if fn[0] <= lowestFn:
-                    currNode = fn[1]
-        # append lowest fn
-        returnedPath.append(currNode)
-        fnList.clear()
+    for neighbor in neighborList:
+        if (neighbor[1] < smallestFn) or (smallestFn == 0) and (neighbor[0] not in seenList):
+            shortestUnseenNeighbor = neighbor
+            smallestFn = neighbor[1]
 
-aStar()
+    # A* the neighbor with the shortest f(n) that we haven't seen before
+    seenList.append(shortestUnseenNeighbor[0])
+    aStar(shortestUnseenNeighbor[0],shortestUnseenNeighbor[1],shortestUnseenNeighbor[2])
 
-# draw the returned path from A*
+aStar(start,0,[])
+
+# draw the shortest path from A*
 def drawLines():
     lastNode = start
-    for node in returnedPath:
+    for node in finalPath:
         pygame.draw.line(screen,ORANGE,lastNode,node,2)
         lastNode = node
 
@@ -129,9 +128,6 @@ while running:
             running = False
 
     # draw background, then shapes and lines, and update screen
-    screen.fill(WHITE)
-    drawField()
-    drawLines()
-    pygame.display.update()
+    screen.fill(WHITE); drawField(); drawLines(); pygame.display.update()
 
 pygame.quit()
