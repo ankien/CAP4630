@@ -1,5 +1,5 @@
-import pygame
 import math
+import pygame
 
 pygame.init()
 pygame.display.set_caption("Andrew's A* Search Visualization")
@@ -16,13 +16,13 @@ RED = (255,0,0) # start color
 start = (195,408); goal = (961,48)
 
 polygon1 = [(227,458),(227,347),(580,347),(580,458)]
-polygon2 = [(209,260),(330,290),(399,145),(318,31),(190,148)]
-polygon3 = [(406,299),(501,301),(450,123)]
+polygon2 = [(209,260),(330,280),(399,145),(318,31),(190,148)]
+polygon3 = [(406,280),(501,280),(450,123)]
 polygon4 = [(508,184),(508,45),(595,29),(659,97)]
 polygon5 = [(597,245),(632,403),(705,332)]
 polygon6 = [(678,275),(678,46),(825,46),(825,275)]
 polygon7 = [(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)]
-polygon8 = [(845,74),(921,300),(941,85),(900,43)]
+polygon8 = [(845,74),(921,300),(941,85),(900,50)]
 polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
 nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
 nodes.append(goal)
@@ -79,7 +79,7 @@ def findNeighbors(currNode):
             offsetY1 = getOffset(rows-currNode[1],rows-node[1])
             offsetX2 = getOffset(node[0],currNode[0])
             offsetY2 = getOffset(rows-node[1],rows-currNode[1])
-            if intersect((currNode[0]+offsetX1,currNode[1]+offsetY1),(node[0]+offsetX2,node[1]+offsetY2),line[0],line[1]) and notLine(currNode,node):
+            if intersect((currNode[0]+offsetX1,rows-currNode[1]+offsetY1),(node[0]+offsetX2,rows-node[1]+offsetY2),(line[0][0],rows-line[0][1]),(line[1][0],rows-line[1][1])) and notLine(currNode,node):
                 neighbors.pop()
                 break
     return neighbors
