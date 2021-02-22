@@ -25,7 +25,7 @@ polygon6 = []
 polygon7 = []
 polygon8 = []
 
-start = (195,408); goal = (961,48)
+start = (195,408); goal = (961,48); goalRadius = 40
 if testCase == 0:
     'do nothing'
 elif testCase == 1:
@@ -59,39 +59,81 @@ def ccw(A,B,C):
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
+def intersectsWithLine(node1,node2):
+    for line in lines:
+        if intersect((node1[0],rows-node1[1]),(node2[0],rows-node2[1]),(line[0][0],rows-line[0][1]),(line[1][0],rows-line[1][1])):
+            return True
+    return False
+
 # Tree dictionary that stores a vertex as key, and its edge as value
 # no two keys can be the same!
-tree = {}
+tree = {start:((0,0),(0,0))}
 def nearestNeighbor(node):
     closestNeighborNode = ()
     shortestNeighborDist = 0
     for vertex in tree:
-        if calculateDist(vertex,node) < shortestNeighborDist or shortestNeighborDist == 0:
-            closestNeighborNode = vertex
+        neighborDist = calculateDist(vertex,node)
+        if neighborDist < shortestNeighborDist or shortestNeighborDist == 0:
+            closestNeighborNode = vertex; shortestNeighborDist = neighborDist
     return closestNeighborNode
 
+def getSign(v1,v2):
+    if v1 < v2:
+        return 1
+    elif v1 == v2:
+        return 1
+    else:
+        return -1
 
+def selectInput(rand,near):
+    m = ((rows-rand[1])-(rows-near[1])) / (rand[0]-near[0])
+    distance = 5 # increase for greater node traveling distance
+    ratio = distance / calculateDist(rand,near)
+    offsetX = (1-ratio) * near[0] + ratio * rand[0]
+    offsetY = (1-ratio) * near[1] + ratio * rand[1]
+    #offsetX = near[0] + getSign(near[0],rand[0]) * (distance * sqrt(1.0/(1+m**2)))
+    #offsetY = (rows-near[1]) + m * getSign(rows-near[1],rows-rand[1]) * (distance * sqrt(1.0/(1+m**2)))
+    return (offsetX,offsetY)
+
+def nodeWithinGoal(node):
+    if calculateDist(goal,node) <= goalRadius:
+        return True
+    return False
+
+finalPath = []
 def generateRRT(k):
     for i in range(k):
         xrand = (randint(0,1280),randint(0,720))
         xnear = nearestNeighbor(xrand)
-        u = selectState()
-        xnew = newInput() # xnew cannot be an existing vertex in the tree
+        xnew = selectInput(xrand,xnear)
+        # xnew cannot be existing vertex, or collide with polygon line
+        if (xnew in tree) or intersectsWithLine(xnear,xnew):
+            continue
+        tree[xnew] = (xnear,xnew)
         # check if xnew is in the goal radius
+        if nodeWithinGoal(xnew):
+            finalPath.clear(); node = xnew
+            while node != start:
+                finalPath.append(node)
+                node = tree[node][0]
+            finalPath.append(start)
     return
 
 # draw start, goal, and objects
 def drawField():
-    for polygon in polygons:
-        pygame.draw.polygon(screen,BLACK,polygon,3)
-    pygame.draw.circle(screen,RED,start,4)
-    pygame.draw.circle(screen,GREEN,goal,20)
+    if testCase != 0:
+        for polygon in polygons:
+            pygame.draw.polygon(screen,BLACK,polygon,4)
+    pygame.draw.circle(screen,RED,start,5)
+    pygame.draw.circle(screen,GREEN,goal,goalRadius)
 
-def drawTrees():
+def drawTree():
     # draw grey line for every edge in tree
-    
+    for value in tree:
+        pygame.draw.line(screen,GREY,tree[value][0],tree[value][1],2)
     # draw orange line for the shortest path in tree
-
+    for i in range(len(finalPath) - 1):
+        pygame.draw.line(screen,ORANGE,finalPath[i],finalPath[i+1],3)
     return
 
 running = True
@@ -101,9 +143,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            generateRRT(50)
+            generateRRT(50) # change value for number of nodes generated on keypress
 
     # draw background, then objects and trees, and update screen
-    screen.fill(WHITE); drawField(); drawTrees(); pygame.display.update()
+    screen.fill(WHITE); drawField(); drawTree(); pygame.display.update()
 
 pygame.quit()
