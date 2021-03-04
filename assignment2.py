@@ -1,11 +1,7 @@
 import math
 import pygame
 
-pygame.init()
-pygame.display.set_caption("Andrew's A* Search Visualization")
-
-columns, rows = (1151,478)
-screen = pygame.display.set_mode((columns,rows))
+columns, rows = (1280,720)
 
 WHITE = (255,255,255) # screen color
 BLACK = (0,0,0) # polygon color
@@ -15,6 +11,7 @@ RED = (255,0,0) # start color
 
 start = (195,408); goal = (961,48)
 
+# enviroment 1
 polygon1 = [(227,458),(227,347),(580,347),(580,458)]
 polygon2 = [(209,260),(330,280),(399,145),(318,31),(190,148)]
 polygon3 = [(408,300),(500,300),(450,123)]
@@ -23,6 +20,14 @@ polygon5 = [(597,245),(632,403),(705,332)]
 polygon6 = [(678,275),(678,46),(825,46),(825,275)]
 polygon7 = [(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)]
 polygon8 = [(845,74),(921,300),(941,85),(900,50)]
+
+# enviroment 2
+polygon9 = [(227,658),(437,658),(330,207)]
+polygon10 = [(350,0),(530,0),(470,258)]
+polygon11 = [(650,300),(700,400),(825,300),(775,100),(725,100)]
+polygon12 = [(850,600),(900,600),(900,300),(850,300)]
+polygon13 = [(850,200),(900,200),(900,0),(850,0)]
+
 polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
 nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
 nodes.append(goal)
@@ -36,7 +41,7 @@ def getLines():
 lines = getLines()
 
 # draw static field stuff using SDL & OpenGL's weird coordinate system
-def drawField():
+def drawField(screen):
     for polygon in polygons:
         pygame.draw.polygon(screen,BLACK,polygon,3)
     pygame.draw.circle(screen,RED,start,4)
@@ -84,50 +89,47 @@ def findNeighbors(currNode):
                 break
     return neighbors
 
-# stores nodes we've already "expanded"
-seenList = []
-def aStar(currNode,currFn,currPath):
-    global finalPath
-    newPath = currPath + [currNode]
-    neighbors = findNeighbors(currNode)
-    neighborList = []
-    shortestUnseenNeighbor = []
-    smallestFn = 0
-    for neighbor in neighbors:
-        if neighbor == goal:
-            newPath.append(neighbor)
-            finalPath = newPath
-            return
-        newFn = currFn + calculateDist(currNode,neighbor) + (calculateDist(neighbor,goal)*1.5)
-        if neighbor != currNode:
-            neighborList.append([neighbor,newFn,newPath])
+def potentialSearch():
+    return
 
-    for neighbor in neighborList:
-        if (neighbor[1] < smallestFn) or (smallestFn == 0) and (neighbor[0] not in seenList):
-            shortestUnseenNeighbor = neighbor
-            smallestFn = neighbor[1]
+print("Enter Ctrl+C to exit from this menu.\n")
+running = False
+while True:
+    # read input variables
+    enviroment = int(input("Enter enviroment # (1 - default, 2 - custom enviroment, 0 - exit program): "))
+    C = ()
+    if enviroment != 0:    
+        int(input("Enter C value: "))
 
-    # A* the neighbor with the shortest f(n) that we haven't seen before
-    seenList.append(shortestUnseenNeighbor[0])
-    aStar(shortestUnseenNeighbor[0],shortestUnseenNeighbor[1],shortestUnseenNeighbor[2])
+    if enviroment == 1:
+        polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
+        nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
+        nodes.append(goal)
+        running = True
+    elif enviroment == 2:
+        polygons = [polygon9,polygon10,polygon11,polygon12,polygon13]
+        nodes = polygon9 + polygon10 + polygon11 + polygon12 + polygon13
+        nodes.append(goal)
+        running = True
+    elif enviroment == 0:
+        break
+    else:
+        print("Invalid enviroment!\n")
+    
+    # window main loop
+    if running:
+        pygame.init()
+        pygame.display.set_caption("Andrew's Potential Search Visualization")
+        screen = pygame.display.set_mode((columns,rows))
+    while True:
+        # poll exit
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        if running == False:
+            pygame.quit()
+            break
 
-aStar(start,0,[])
-
-# draw the shortest path from A*
-def drawLines():
-    lastNode = start
-    for node in finalPath:
-        pygame.draw.line(screen,ORANGE,lastNode,node,2)
-        lastNode = node
-
-running = True
-while running:
-    # poll exit
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # draw background, then shapes and lines, and update screen
-    screen.fill(WHITE); drawField(); drawLines(); pygame.display.update()
-
-pygame.quit()
+        # draw background, then shapes and lines, and update screen
+        screen.fill(WHITE); drawField(screen); pygame.display.update()
