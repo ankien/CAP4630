@@ -22,7 +22,7 @@ polygon7 = [(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)]
 polygon8 = [(845,74),(921,300),(941,85),(900,50)]
 
 # enviroment 2
-polygon9 = [(227,658),(437,658),(330,207)]
+polygon9 = [(227,658),(437,558),(330,207)]
 polygon10 = [(350,0),(530,0),(470,258)]
 polygon11 = [(650,300),(700,400),(825,300),(775,100),(725,100)]
 polygon12 = [(850,600),(900,600),(900,300),(850,300)]
@@ -89,8 +89,58 @@ def findNeighbors(currNode):
                 break
     return neighbors
 
-def potentialSearch():
-    return
+# g(n) == cost of path from start node to goal
+# C == some value
+# h(n) == path from node to goal
+def popHighestU(openList,cValue):
+    currHighestNode = ()
+    currHighest = 0
+    for node in openList:
+        # (C - g(n)) / h(n)
+        if ((cValue - g[node])/calculateDist(node,goal)) > currHighest or currHighest == 0:
+            currHighest = ((cValue - g[node])/calculateDist(node,goal))
+            currHighestNode = node
+    closed[currHighestNode] = openList[currHighestNode]
+    del openList[currHighestNode]
+    return currHighestNode
+
+# nodes in openlist contain g(n) value, and previous node n
+def potentialSearch(cValue):
+    open = {start:start}
+    global closed
+    closed = {}
+    global g
+    g = {start:0}
+    while len(open):
+        n = popHighestU(open,cValue)
+        neighbors = findNeighbors(n)
+        for neighbor in neighbors:
+            if neighbor in open or neighbor in closed:
+                if g[neighbor] <= (g[n] + calculateDist(n,neighbor)):
+                    continue
+
+            newNeighborGN = g[n] + calculateDist(n,neighbor)
+
+            if newNeighborGN + calculateDist(neighbor,goal) >= C:
+                continue
+
+            if neighbor == goal:
+                closed[goal] = n
+                return 1
+
+            if neighbor in open:
+                g[neighbor] = newNeighborGN
+            else:
+                open[neighbor] = n
+                g[neighbor] = newNeighborGN
+
+    return 0
+
+def drawLines():
+    lastNode = goal
+    for node in closed:
+        pygame.draw.line(screen,ORANGE,lastNode,closed[lastNode],2)
+        lastNode = closed[lastNode]
 
 print("Enter Ctrl+C to exit from this menu.\n")
 running = False
@@ -99,22 +149,28 @@ while True:
     enviroment = int(input("Enter enviroment # (1 - default, 2 - custom enviroment, 0 - exit program): "))
     C = ()
     if enviroment != 0:    
-        int(input("Enter C value: "))
+        C = int(input("Enter C value: "))
 
     if enviroment == 1:
         polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
         nodes = polygon1 + polygon2 + polygon3 + polygon4 + polygon5 + polygon6 + polygon7 + polygon8
         nodes.append(goal)
+        outcome = potentialSearch(C)
         running = True
     elif enviroment == 2:
         polygons = [polygon9,polygon10,polygon11,polygon12,polygon13]
         nodes = polygon9 + polygon10 + polygon11 + polygon12 + polygon13
         nodes.append(goal)
+        outcome = potentialSearch(C)
         running = True
     elif enviroment == 0:
         break
     else:
         print("Invalid enviroment!\n")
+
+    if outcome == 0:
+        print("No path found.\n")
+        continue
     
     # window main loop
     if running:
@@ -132,4 +188,4 @@ while True:
             break
 
         # draw background, then shapes and lines, and update screen
-        screen.fill(WHITE); drawField(screen); pygame.display.update()
+        screen.fill(WHITE); drawField(screen); drawLines(); pygame.display.update()

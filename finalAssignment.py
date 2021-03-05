@@ -91,8 +91,6 @@ def selectInput(rand,near):
     ratio = distance / calculateDist(rand,near)
     offsetX = (1-ratio) * near[0] + ratio * rand[0]
     offsetY = (1-ratio) * near[1] + ratio * rand[1]
-    #offsetX = near[0] + getSign(near[0],rand[0]) * (distance * sqrt(1.0/(1+m**2)))
-    #offsetY = (rows-near[1]) + m * getSign(rows-near[1],rows-rand[1]) * (distance * sqrt(1.0/(1+m**2)))
     return (offsetX,offsetY)
 
 def nodeWithinGoal(node):
