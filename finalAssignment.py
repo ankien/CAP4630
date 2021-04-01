@@ -15,32 +15,80 @@ ORANGE = (255,165,0) # tree path color
 GREEN = (0,255,0) # goal color
 RED = (255,0,0) # start color
 
-testCase = int(input("Enter a test case type:\n0 - No Objects\n1 - Static Objects\n2 - Random Objects\n"))
-polygon1 = []
-polygon2 = []
-polygon3 = []
-polygon4 = []
-polygon5 = []
-polygon6 = []
-polygon7 = []
-polygon8 = []
+testCase = int(input("Enter a test case type:\n0 - No Objects\n1 - Static Objects\n2 - 100x100\n3 - 200x200\n4 - 300x300\n"))
 
-start = (195,408); goal = (961,48); goalRadius = 40
+# global variables
+goal = (961,48)
+start = (195,408); startRadius = 5; goalRadius = 40
+polygons = []
+distance = 5 # increase for greater node traveling distance
+polygonWidth = 4
+
+# randomly places squares of given side length in the list of polygons
+# also does colision detection
+def createRandomSquares(numOfShape, sideLength):
+    for i in range(numOfShape):
+        p1 = (randint(0,rows),randint(0,columns))
+        p2 = (p1[0]+sideLength,p1[1])
+        p3 = (p2[0],p1[1]+sideLength)
+        p4 = (p1[0],p3[1])
+
+        polygons.append([p1,p2,p3,p4])
+
+def calculateDist(node1,node2):
+    return sqrt((node2[0]-node1[0])**2 + ((rows-node2[1])-(rows-node1[1]))**2)
+
+def nodeWithinDist(node,nodeWithRadius,radius):
+    if calculateDist(nodeWithRadius,node) <= radius:
+        return True
+    return False
+
 if testCase == 0:
     'do nothing'
 elif testCase == 1:
-    polygon1 = [(227,458),(227,347),(580,347),(580,458)]
-    polygon2 = [(209,260),(330,280),(399,145),(318,31),(190,148)]
-    polygon3 = [(408,300),(500,300),(450,123)]
-    polygon4 = [(508,184),(508,45),(595,29),(659,97)]
-    polygon5 = [(597,245),(632,403),(705,332)]
-    polygon6 = [(678,275),(678,46),(825,46),(825,275)]
-    polygon7 = [(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)]
-    polygon8 = [(845,74),(921,300),(941,85),(900,50)]
-#elif testCase == 2:
-# keep the start and goal static
+    polygons.append([(227,458),(227,347),(580,347),(580,458)])
+    polygons.append([(209,260),(330,280),(399,145),(318,31),(190,148)])
+    polygons.append([(408,300),(500,300),(450,123)])
+    polygons.append([(508,184),(508,45),(595,29),(659,97)])
+    polygons.append([(597,245),(632,403),(705,332)])
+    polygons.append([(678,275),(678,46),(825,46),(825,275)])
+    polygons.append([(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)])
+    polygons.append([(845,74),(921,300),(941,85),(900,50)])
+elif testCase == 2:
+    columns, rows = (100,100)
+    screen = pygame.display.set_mode((columns,rows))
+    distance = 3
+    polygonWidth = 1
+    start = (randint(0,columns),randint(0,rows))
+    goalRadius = 10
+    goal = (randint(0,columns),randint(0,rows))
+    while nodeWithinDist(start,goal,goalRadius):
+        goal = (randint(0,columns),randint(0,rows))
+    createRandomSquares(6,8)
+elif testCase == 3:
+    columns, rows = (200,200)
+    screen = pygame.display.set_mode((columns,rows))
+    distance = 3
+    polygonWidth = 2
+    start = (randint(0,columns),randint(0,rows))
+    goalRadius = 10
+    goal = (randint(0,columns),randint(0,rows))
+    while nodeWithinDist(start,goal,goalRadius):
+        goal = (randint(0,columns),randint(0,rows))
+    createRandomSquares(15,10)
+elif testCase == 4:
+    columns, rows = (300,300)
+    screen = pygame.display.set_mode((columns,rows))
+    distance = 3
+    polygonWidth = 2
+    start = (randint(0,columns),randint(0,rows))
+    goalRadius = 10
+    goal = (randint(0,columns),randint(0,rows))
+    while nodeWithinDist(start,goal,goalRadius):
+        goal = (randint(0,columns),randint(0,rows))
+    createRandomSquares(25,20)
 
-polygons = [polygon1,polygon2,polygon3,polygon4,polygon5,polygon6,polygon7,polygon8]
+polygons.append([(0,0),(columns,0),(columns,rows),(0,rows)])
 
 def getLines():
     linesList = []
@@ -49,9 +97,6 @@ def getLines():
             linesList.append((polygon[index],polygon[(index+1) % len(polygon)]))
     return linesList
 lines = getLines()
-
-def calculateDist(node1,node2):
-    return sqrt((node2[0]-node1[0])**2 + ((rows-node2[1])-(rows-node1[1]))**2)
 
 def ccw(A,B,C):
     return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
@@ -87,20 +132,15 @@ def getSign(v1,v2):
 
 def selectInput(rand,near):
     m = ((rows-rand[1])-(rows-near[1])) / (rand[0]-near[0])
-    distance = 5 # increase for greater node traveling distance
     ratio = distance / calculateDist(rand,near)
     offsetX = (1-ratio) * near[0] + ratio * rand[0]
     offsetY = (1-ratio) * near[1] + ratio * rand[1]
     return (offsetX,offsetY)
 
-def nodeWithinGoal(node):
-    if calculateDist(goal,node) <= goalRadius:
-        return True
-    return False
-
 finalPath = []
 def generateRRT(k):
-    for i in range(k):
+    i = 0
+    while i < k:
         xrand = (randint(0,1280),randint(0,720))
         xnear = nearestNeighbor(xrand)
         xnew = selectInput(xrand,xnear)
@@ -109,20 +149,24 @@ def generateRRT(k):
             continue
         tree[xnew] = (xnear,xnew)
         # check if xnew is in the goal radius
-        if nodeWithinGoal(xnew):
+        if nodeWithinDist(xnew,goal,goalRadius):
             finalPath.clear(); node = xnew
             while node != start:
                 finalPath.append(node)
                 node = tree[node][0]
             finalPath.append(start)
+        i+=1
     return
 
 # draw start, goal, and objects
 def drawField():
     if testCase != 0:
-        for polygon in polygons:
-            pygame.draw.polygon(screen,BLACK,polygon,4)
-    pygame.draw.circle(screen,RED,start,5)
+        for i in range(len(polygons)):
+            if i == len(polygons) - 1:
+                pygame.draw.polygon(screen,WHITE,polygons[i],polygonWidth)
+            else:
+                pygame.draw.polygon(screen,BLACK,polygons[i],polygonWidth)
+    pygame.draw.circle(screen,RED,start,startRadius)
     pygame.draw.circle(screen,GREEN,goal,goalRadius)
 
 def drawTree():
