@@ -24,8 +24,6 @@ polygons = []
 distance = 5 # increase for greater node traveling distance
 polygonWidth = 4
 
-# randomly places squares of given side length in the list of polygons
-# also does colision detection
 def createRandomSquares(numOfShape, sideLength):
     for i in range(numOfShape):
         p1 = (randint(0,rows),randint(0,columns))
@@ -54,39 +52,17 @@ elif testCase == 1:
     polygons.append([(678,275),(678,46),(825,46),(825,275)])
     polygons.append([(761,341),(841,288),(902,339),(902,428),(832,463),(761,420)])
     polygons.append([(845,74),(921,300),(941,85),(900,50)])
-elif testCase == 2:
-    columns, rows = (100,100)
+else:
+    columns, rows = (100*testCase,100*testCase)
     screen = pygame.display.set_mode((columns,rows))
     distance = 3
-    polygonWidth = 1
+    polygonWidth = 1*testCase
     start = (randint(0,columns),randint(0,rows))
     goalRadius = 10
     goal = (randint(0,columns),randint(0,rows))
     while nodeWithinDist(start,goal,goalRadius):
         goal = (randint(0,columns),randint(0,rows))
-    createRandomSquares(6,8)
-elif testCase == 3:
-    columns, rows = (200,200)
-    screen = pygame.display.set_mode((columns,rows))
-    distance = 3
-    polygonWidth = 2
-    start = (randint(0,columns),randint(0,rows))
-    goalRadius = 10
-    goal = (randint(0,columns),randint(0,rows))
-    while nodeWithinDist(start,goal,goalRadius):
-        goal = (randint(0,columns),randint(0,rows))
-    createRandomSquares(15,10)
-elif testCase == 4:
-    columns, rows = (300,300)
-    screen = pygame.display.set_mode((columns,rows))
-    distance = 3
-    polygonWidth = 2
-    start = (randint(0,columns),randint(0,rows))
-    goalRadius = 10
-    goal = (randint(0,columns),randint(0,rows))
-    while nodeWithinDist(start,goal,goalRadius):
-        goal = (randint(0,columns),randint(0,rows))
-    createRandomSquares(25,20)
+    createRandomSquares(5*testCase,8*testCase)
 
 polygons.append([(0,0),(columns,0),(columns,rows),(0,rows)])
 
@@ -110,8 +86,6 @@ def intersectsWithLine(node1,node2):
             return True
     return False
 
-# Tree dictionary that stores a vertex as key, and its edge as value
-# no two keys can be the same!
 tree = {start:((0,0),(0,0))}
 def nearestNeighbor(node):
     closestNeighborNode = ()
@@ -131,11 +105,13 @@ def getSign(v1,v2):
         return -1
 
 def selectInput(rand,near):
-    m = ((rows-rand[1])-(rows-near[1])) / (rand[0]-near[0])
-    ratio = distance / calculateDist(rand,near)
-    offsetX = (1-ratio) * near[0] + ratio * rand[0]
-    offsetY = (1-ratio) * near[1] + ratio * rand[1]
-    return (offsetX,offsetY)
+    if(rand[0]-near[0]) != 0:
+        m = ((rows-rand[1])-(rows-near[1])) / (rand[0]-near[0])
+        ratio = distance / calculateDist(rand,near)
+        offsetX = (1-ratio) * near[0] + ratio * rand[0]
+        offsetY = (1-ratio) * near[1] + ratio * rand[1]
+        return (offsetX,offsetY)
+    return (0,0)
 
 finalPath = []
 def generateRRT(k):
@@ -180,14 +156,12 @@ def drawTree():
 
 running = True
 while running:
-    # poll exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             generateRRT(50) # change value for number of nodes generated on keypress
 
-    # draw background, then objects and trees, and update screen
     screen.fill(WHITE); drawField(); drawTree(); pygame.display.update()
 
 pygame.quit()
